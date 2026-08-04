@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mantroccharan — ॐ नमः शिवाय</title>
+<style>
+  :root {
+    --bg1: #1a0f1f;
+    --bg2: #2d1b30;
+    --saffron: #ff8c42;
+    --gold: #ffd700;
+    --text: #f5e6d3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', 'Segoe UI', serif;
+    background: radial-gradient(circle at 50% 20%, var(--bg2), var(--bg1));
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .screen {
+    display: none;
+    text-align: center;
+    width: 100%;
+    max-width: 480px;
+    padding: 30px;
+    animation: fadeIn 0.6s ease;
+  }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+
+  .om-symbol {
+    font-size: 72px;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--saffron);
+    margin-bottom: 30px;
+    font-weight: 400;
+  }
+  input[type="number"] {
+    width: 140px;
+    padding: 14px;
+    font-size: 22px;
+    text-align: center;
+    border: 2px solid var(--saffron);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    outline: none;
+    margin-bottom: 20px;
+  }
+  button {
+    display: block;
+    margin: 10px auto;
+    padding: 14px 36px;
+    font-size: 17px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, var(--saffron), #b5451b);
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255,140,66,0.3);
+    transition: transform 0.15s ease;
+  }
+  button:hover { transform: scale(1.04); }
+  button:active { transform: scale(0.97); }
+
+  .count-display {
+    font-size: 90px;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,0,0.4);
+    line-height: 1;
+  }
+  .target-label { font-size: 16px; color: #b0a090; margin-bottom: 20px; }
+  .progress-ring { margin: 20px auto; }
+  .status-text {
+    font-size: 14px;
+    color: #c9a87c;
+    margin-top: 12px;
+    min-height: 20px;
+    letter-spacing: 0.5px;
+  }
+  .mic-pulse {
+    width: 18px; height: 18px;
+    background: #ff5252;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    animation: pulse 1.2s infinite;
+    vertical-align: middle;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,82,82,0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(255,82,82,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,82,82,0); }
+  }
+  .last-heard {
+    font-size: 12px;
+    color: #6e6058;
+    margin-top: 10px;
+    font-style: italic;
+    min-height: 16px;
+  }
+  .stop-btn {
+    background: transparent;
+    border: 1px solid #b0a090;
+    color: #b0a090;
+    padding: 8px 20px;
+    font-size: 13px;
+    margin-top: 25px;
+  }
+
+  /* Completion screen */
+  .complete-om {
+    font-size: 100px;
+    color: var(--gold);
+    animation: glow 1.5s ease-in-out infinite alternate, spinIn 1s ease;
+  }
+  @keyframes glow {
+    from { text-shadow: 0 0 20px rgba(255,215,0,0.4); }
+    to { text-shadow: 0 0 60px rgba(255,215,0,0.9); }
+  }
+  @keyframes spinIn {
+    from { transform: rotate(-180deg) scale(0.3); opacity:0; }
+    to { transform: rotate(0) scale(1); opacity:1; }
+  }
+  .jai-text {
+    font-size: 30px;
+    color: var(--saffron);
+    margin-top: 20px;
+    letter-spacing: 2px;
+    animation: fadeIn 1s ease 0.3s;
+  }
+  .jai-sub {
+    font-size: 15px;
+    color: #c9a87c;
+    margin-top: 8px;
+  }
+  .petals {
+    position: fixed;
+    top: -20px;
+    font-size: 20px;
+    animation: fall linear infinite;
+    opacity: 0.8;
+    z-index: -1;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div id="petalContainer"></div>
+
+<!-- SCREEN 1: Setup -->
+<div class="screen active" id="setupScreen">
+  <div class="om-symbol">ॐ</div>
+  <h1>MANTROCCHARAN</h1>
+  <div class="target-label">How many times do you wish to recite<br><strong>ॐ नमः शिवाय</strong> today?</div>
+  <input type="number" id="targetInput" placeholder="e.g. 108" min="1" value="108">
+  <button id="startBtn">Begin Chanting 🙏</button>
+</div>
+
+<!-- SCREEN 2: Listening -->
+<div class="screen" id="listenScreen">
+  <div class="target-label"><span class="mic-pulse"></span>Listening for your chant...</div>
+  <div class="count-display" id="countDisplay">0</div>
+  <div class="target-label">of <span id="targetDisplay">108</span></div>
+  <div class="status-text" id="statusText">Chant ॐ नमः शिवाय aloud, continuously</div>
+  <div class="last-heard" id="lastHeard"></div>
+  <button class="stop-btn" id="stopBtn">Stop Session</button>
+</div>
+
+<!-- SCREEN 3: Completion -->
+<div class="screen" id="completeScreen">
+  <div class="complete-om">ॐ</div>
+  <div class="jai-text">जय भोलेनाथ</div>
+  <div class="jai-text" style="font-size:22px;">Jai Bholenath 🙏</div>
+  <div class="jai-sub">Your sankalpa is complete. Har Har Mahadev.</div>
+</div>
+
+<script>
+(function () {
+  // ---------- Config ----------
+  const TARGET_PHRASES = [
+    "om namah shivaya", "om namah shivay", "aum namah shivaya",
+    "om namaha shivaya", "om namaha shivay", "om namo shivaya",
+    "om nama shivaya", "om namashivaya", "aum namah shivay",
+    "om namah shivayah", "om namassivaya", "om nomo shivaya"
+  ];
+  const MATCH_THRESHOLD = 0.72; // blended similarity+confidence -> acts like "~90% sure" gate
+  const BEEP_REMAINING = 3;
+  const RESET_DELAY_MS = 10000;
+  const RECOGNITION_LANG = "en-IN"; // en-IN / hi-IN both work reasonably for transliterated Sanskrit
+
+  // ---------- State ----------
+  let target = 108;
+  let count = 0;
+  let beepPlayed = false;
+  let recognition = null;
+  let listening = false;
+  let shouldRestart = false;
+  let lastMatchTime = 0;
+  const MIN_GAP_MS = 400; // debounce: avoid double counting one utterance split across events
+
+  // ---------- Elements ----------
+  const setupScreen = document.getElementById('setupScreen');
+  const listenScreen = document.getElementById('listenScreen');
+  const completeScreen = document.getElementById('completeScreen');
+  const targetInput = document.getElementById('targetInput');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const countDisplay = document.getElementById('countDisplay');
+  const targetDisplay = document.getElementById('targetDisplay');
+  const statusText = document.getElementById('statusText');
+  const lastHeard = document.getElementById('lastHeard');
+
+  function showScreen(el) {
+    [setupScreen, listenScreen, completeScreen].forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ---------- Fuzzy matching ----------
+  function normalize(str) {
+    return str.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i-1] === b[j-1]
+          ? dp[i-1][j-1]
+          : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function similarity(a, b) {
+    const dist = levenshtein(a, b);
+    const maxLen = Math.max(a.length, b.length, 1);
+    return 1 - dist / maxLen;
+  }
+
+  // Slide a window over a longer transcript to find best matching substring
+  // against each target phrase (handles run-on continuous chanting)
+  function bestPhraseScore(transcript) {
+    const norm = normalize(transcript);
+    const words = norm.split(' ');
+    let best = 0;
+    for (const phrase of TARGET_PHRASES) {
+      const phraseWordCount = phrase.split(' ').length;
+      for (let i = 0; i <= Math.max(0, words.length - phraseWordCount + 2); i++) {
+        for (let len = Math.max(2, phraseWordCount - 1); len <= phraseWordCount + 2; len++) {
+          const chunk = words.slice(i, i + len).join(' ');
+          if (!chunk) continue;
+          const score = similarity(chunk, phrase);
+          if (score > best) best = score;
+        }
+      }
+      // also compare full transcript directly (handles short single-word utterances)
+      const fullScore = similarity(norm, phrase);
+      if (fullScore > best) best = fullScore;
+    }
+    return best;
+  }
+
+  function blendedScore(transcript, confidence) {
+    const textScore = bestPhraseScore(transcript);
+    const conf = (typeof confidence === 'number' && !isNaN(confidence) && confidence > 0) ? confidence : 0.75; // fallback if browser doesn't report confidence
+    // weight text similarity higher since API confidence is unreliable/relative
+    return 0.75 * textScore + 0.25 * conf;
+  }
+
+  // ---------- Audio: soft beep (Web Audio API, no external files) ----------
+  let audioCtx = null;
+  function playBeep() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.value = 0.06; // kept intentionally quiet
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } catch (e) { console.warn('Beep failed', e); }
+  }
+
+  // ---------- Speech Recognition setup ----------
+  function createRecognizer() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      statusText.textContent = "⚠ Speech recognition not supported in this browser. Use Chrome or Edge.";
+      return null;
+    }
+    const r = new SR();
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 3;
+    r.lang = RECOGNITION_LANG;
+
+    r.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal) continue; // only count finalized utterances
+        let bestScore = 0;
+        let bestTranscript = '';
+        for (let a = 0; a < result.length; a++) {
+          const alt = result[a];
+          const score = blendedScore(alt.transcript, alt.confidence);
+          if (score > bestScore) { bestScore = score; bestTranscript = alt.transcript; }
+        }
+        lastHeard.textContent = 'Heard: "' + bestTranscript.trim() + '"';
+        const now = Date.now();
+        if (bestScore >= MATCH_THRESHOLD && (now - lastMatchTime) > MIN_GAP_MS) {
+          lastMatchTime = now;
+          registerChant();
+        }
+      }
+    };
+
+    r.onerror = (e) => {
+      console.warn('Recognition error:', e.error);
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        statusText.textContent = "⚠ Microphone access denied. Please allow mic permission and restart.";
+        shouldRestart = false;
+      } else if (e.error === 'no-speech') {
+        // benign, will auto-restart via onend
+      } else if (e.error === 'network') {
+        statusText.textContent = "⚠ Network hiccup, reconnecting...";
+      }
+    };
+
+    r.onend = () => {
+      listening = false;
+      if (shouldRestart) {
+        // small delay avoids tight restart loops on some browsers
+        setTimeout(() => { if (shouldRestart) startListening(); }, 250);
+      }
+    };
+
+    return r;
+  }
+
+  function startListening() {
+    if (listening) return;
+    recognition = createRecognizer();
+    if (!recognition) return;
+    try {
+      recognition.start();
+      listening = true;
+      statusText.textContent = "Chant ॐ नमः शिवाय aloud, continuously";
+    } catch (e) {
+      console.warn('start() failed, retrying shortly', e);
+      setTimeout(() => { if (shouldRestart) startListening(); }, 500);
+    }
+  }
+
+  function stopListening() {
+    shouldRestart = false;
+    if (recognition) {
+      try { recognition.onend = null; recognition.stop(); } catch (e) {}
+    }
+    listening = false;
+  }
+
+  // ---------- Chant counting logic ----------
+  function registerChant() {
+    if (count >= target) return;
+    count++;
+    countDisplay.textContent = count;
+    const remaining = target - count;
+
+    if (remaining === BEEP_REMAINING) {
+      playBeep();
+      statusText.textContent = `Almost there — just ${BEEP_REMAINING} more chants to go!`;
+    } else if (remaining > 0) {
+      statusText.textContent = "Chant ॐ नमः शिवाय aloud, continuously";
+    }
+
+    // gentle pulse animation on count
+    countDisplay.style.transform = 'scale(1.15)';
+    setTimeout(() => { countDisplay.style.transform = 'scale(1)'; }, 150);
+    countDisplay.style.transition = 'transform 0.15s ease';
+
+    if (count >= target) {
+      onTargetComplete();
+    }
+  }
+
+  function onTargetComplete() {
+    stopListening();
+    spawnPetals();
+    showScreen(completeScreen);
+    setTimeout(() => {
+      resetToSetup();
+    }, RESET_DELAY_MS);
+  }
+
+  function resetToSetup() {
+    count = 0;
+    beepPlayed = false;
+    countDisplay.textContent = '0';
+    lastHeard.textContent = '';
+    clearPetals();
+    showScreen(setupScreen);
+  }
+
+  // ---------- Decorative falling petals for completion ----------
+  function spawnPetals() {
+    const container = document.getElementById('petalContainer');
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'petals';
+      p.textContent = ['🌸','🪷','✨'][Math.floor(Math.random()*3)];
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDuration = (3 + Math.random() * 3) + 's';
+      p.style.animationDelay = (Math.random() * 2) + 's';
+      container.appendChild(p);
+    }
+  }
+  function clearPetals() {
+    document.getElementById('petalContainer').innerHTML = '';
+  }
+
+  // ---------- Event bindings ----------
+  startBtn.addEventListener('click', () => {
+    const val = parseInt(targetInput.value, 10);
+    target = (isNaN(val) || val < 1) ? 108 : val;
+    targetDisplay.textContent = target;
+    count = 0;
+    countDisplay.textContent = '0';
+    lastHeard.textContent = '';
+    showScreen(listenScreen);
+    shouldRestart = true;
+    startListening(); // called from a real click -> satisfies user-gesture requirement
+  });
+
+  stopBtn.addEventListener('click', () => {
+    stopListening();
+    resetToSetup();
+  });
+
+})();
+</script>
+</body>
+</html>
